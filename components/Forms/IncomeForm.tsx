@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { createIncome } from "@/actions/income"
+import { useState } from "react"
 
 const incomeSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -30,6 +31,7 @@ export type IncomeFormProps = z.infer<typeof incomeSchema>
 export default function IncomeForm() {
   const router = useRouter()
   const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<IncomeFormProps>({
     resolver: zodResolver(incomeSchema),
@@ -44,26 +46,34 @@ export default function IncomeForm() {
 
   async function onSubmit(data: IncomeFormProps) {
     try {
-      // Combine date and time if needed
+      setIsSubmitting(true)
+      console.log("Submitting income form with data:", data)
+
       const result = await createIncome(data)
 
-      if (result.error) {
-        throw new Error("Failed to create income")
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create income")
       }
+
+      console.log("Income created successfully:", result.data)
 
       toast({
         title: "Income recorded",
         description: "Your income has been successfully recorded.",
+        variant: "default",
       })
 
       router.push("/dashboard/income")
     } catch (error) {
+      console.error("Error submitting income form:", error)
+
       toast({
         title: "Error",
-        description: "There was an error recording your income.",
+        description: error instanceof Error ? error.message : "There was an error recording your income.",
         variant: "destructive",
       })
-      console.error(error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -71,36 +81,53 @@ export default function IncomeForm() {
     <div className="max-w-2xl mx-auto py-6">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Add Income</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>New Income</CardTitle>
+      <Card className="border border-emerald-100 shadow-md">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50">
+          <CardTitle className="text-emerald-700">New Income</CardTitle>
           <CardDescription>Record a new income with details like amount, category, and date.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Income Title</Label>
-              <Input id="title" placeholder="e.g., Salary, Freelance, Gift" {...form.register("title")} />
+              <Label htmlFor="title" className="text-emerald-700">
+                Income Title
+              </Label>
+              <Input
+                id="title"
+                placeholder="e.g., Salary, Freelance, Gift"
+                {...form.register("title")}
+                className="border-emerald-200 focus:border-emerald-300 focus:ring-emerald-200"
+              />
               {form.formState.errors.title && (
                 <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (UGX)</Label>
-              <Input id="amount" type="number" placeholder="e.g., 2000000" {...form.register("amount")} />
+              <Label htmlFor="amount" className="text-emerald-700">
+                Amount (UGX)
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="e.g., 2000000"
+                {...form.register("amount")}
+                className="border-emerald-200 focus:border-emerald-300 focus:ring-emerald-200"
+              />
               {form.formState.errors.amount && (
                 <p className="text-sm text-red-500">{form.formState.errors.amount.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-emerald-700">
+                Category
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue("category", value)}
                 defaultValue={form.getValues("category")}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-emerald-200 focus:ring-emerald-200">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -119,18 +146,18 @@ export default function IncomeForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label className="text-emerald-700">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal border-emerald-200 focus:ring-emerald-200",
                         !form.getValues("date") && "text-muted-foreground",
                       )}
                       type="button"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4 text-emerald-500" />
                       {form.getValues("date") ? (
                         format(new Date(form.getValues("date")), "PPP")
                       ) : (
@@ -144,6 +171,7 @@ export default function IncomeForm() {
                       selected={form.getValues("date") ? new Date(form.getValues("date")) : undefined}
                       onSelect={(date) => date && form.setValue("date", date.toISOString())}
                       initialFocus
+                      className="rounded-md border border-emerald-200"
                     />
                   </PopoverContent>
                 </Popover>
@@ -153,11 +181,11 @@ export default function IncomeForm() {
               </div>
 
               <div className="space-y-2">
-                <Label>Time</Label>
+                <Label className="text-emerald-700">Time</Label>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal border-emerald-200 focus:ring-emerald-200"
                     type="button"
                     onClick={() => {
                       // Update the time component of the date
@@ -167,7 +195,7 @@ export default function IncomeForm() {
                       form.setValue("date", currentDate.toISOString())
                     }}
                   >
-                    <Clock className="mr-2 h-4 w-4" />
+                    <Clock className="mr-2 h-4 w-4 text-emerald-500" />
                     {form.getValues("date") ? format(new Date(form.getValues("date")), "h:mm a") : "Set time"}
                   </Button>
                 </div>
@@ -175,15 +203,29 @@ export default function IncomeForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Input id="description" placeholder="Add any additional details" {...form.register("description")} />
+              <Label htmlFor="description" className="text-emerald-700">
+                Description (Optional)
+              </Label>
+              <Input
+                id="description"
+                placeholder="Add any additional details"
+                {...form.register("description")}
+                className="border-emerald-200 focus:border-emerald-300 focus:ring-emerald-200"
+              />
             </div>
 
-            <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => router.push("/dashboard/income")}>
+            <div className="flex justify-end space-x-4 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/dashboard/income")}
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              >
                 Cancel
               </Button>
-              <Button type="submit">Record Income</Button>
+              <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                {isSubmitting ? "Recording..." : "Record Income"}
+              </Button>
             </div>
           </form>
         </CardContent>

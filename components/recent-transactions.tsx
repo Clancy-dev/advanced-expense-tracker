@@ -1,10 +1,11 @@
 "use client"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CreditCard, DollarSign, Home, ShoppingBag, Briefcase, Laptop } from "lucide-react"
-import { formatDistanceToNow, format } from "date-fns"
+import { CreditCard, DollarSign, Home, ShoppingBag, Briefcase, Laptop, Calendar } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
 import type { Income, Expense } from "@prisma/client"
+import { motion } from "framer-motion"
 
 interface RecentTransactionsProps {
   incomes: Income[]
@@ -44,40 +45,49 @@ export function RecentTransactions({ incomes, expenses }: RecentTransactionsProp
 
   // Map categories to icon colors
   const getCategoryColor = (type: "income" | "expense") => {
-    return type === "income" ? "bg-emerald-500" : "bg-rose-500"
+    return type === "income"
+      ? "bg-gradient-to-r from-emerald-500 to-green-400"
+      : "bg-gradient-to-r from-rose-500 to-pink-400"
   }
 
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-6 text-slate-500">
-        No transactions yet. Add income or expenses to see them here.
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <Calendar className="h-12 w-12 text-slate-300 mb-3" />
+        <p className="text-slate-500 mb-2">No transactions yet</p>
+        <p className="text-sm text-slate-400">Add income or expenses to see them here</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      {transactions.map((transaction) => (
-        <div key={transaction.id} className="flex items-center">
-          <Avatar className={`h-9 w-9 ${getCategoryColor(transaction.type)}`}>
+    <div className="space-y-6">
+      {transactions.map((transaction, index) => (
+        <motion.div
+          key={transaction.id}
+          className="flex items-center p-3 rounded-lg hover:bg-slate-50 transition-colors"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <Avatar className={`h-10 w-10 ${getCategoryColor(transaction.type)}`}>
             <AvatarFallback className="text-white">
               {getCategoryIcon(transaction.category, transaction.type)}
             </AvatarFallback>
           </Avatar>
-          <div className="ml-4 space-y-1">
-            <p className="text-sm font-medium leading-none">{transaction.title}</p>
-            <p className="text-sm text-slate-500">{transaction.category}</p>
-            <p className="text-xs text-slate-500">
-              {formatDistanceToNow(new Date(transaction.date), { addSuffix: true })} at{" "}
-              {format(new Date(transaction.date), "h:mm a")}
-            </p>
+          <div className="ml-4 space-y-1 flex-1 min-w-0">
+            <p className="text-sm font-medium leading-none truncate">{transaction.title}</p>
+            <div className="flex items-center text-xs text-slate-500">
+              <span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 mr-2">
+                {transaction.category}
+              </span>
+              <span>{formatDistanceToNow(new Date(transaction.date), { addSuffix: true })}</span>
+            </div>
           </div>
-          <div
-            className={`ml-auto font-medium ${transaction.type === "income" ? "text-emerald-500" : "text-rose-500"}`}
-          >
+          <div className={`font-medium ${transaction.type === "income" ? "text-emerald-500" : "text-rose-500"}`}>
             {transaction.type === "income" ? "+" : "-"} {formatCurrency(transaction.amount)}
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   )

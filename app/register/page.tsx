@@ -8,29 +8,74 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { register } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const { toast } = useToast()
+  const router = useRouter()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
 
-    try {
-      const formData = new FormData(event.currentTarget)
-      const result = await register(formData)
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+      return
+    }
 
-      if (result?.error) {
+    try {
+      // Add logging to debug the request
+      console.log("Sending registration request with:", { fullName, email })
+
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          email,
+          password,
+        }),
+      })
+
+      // Log the response status
+      console.log("Registration response status:", response.status)
+
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Registration error response:", errorText)
+
         toast({
           title: "Error",
-          description: result.error,
+          description: "An error occurred during registration. Please try again.",
           variant: "destructive",
         })
         setIsLoading(false)
+        return
       }
+
+      const data = await response.json()
+
+      toast({
+        title: "Success",
+        description: "Your account has been created successfully",
+      })
+
+      router.push("/dashboard")
+      router.refresh()
     } catch (error) {
       console.error("Registration failed:", error)
       toast({
@@ -52,20 +97,45 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" placeholder="John Doe" required />
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required />
+              <Input
+                id="email"
+                type="email"
+                placeholder="john.doe@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" name="confirmPassword" type="password" required />
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

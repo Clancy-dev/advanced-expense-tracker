@@ -3,8 +3,9 @@
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
-import { signIn, signOut } from "@/lib/auth"
+import { signIn } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { deleteSession } from "@/lib/session"
 
 export async function register(formData: FormData) {
   try {
@@ -77,11 +78,6 @@ export async function login(formData: FormData) {
 }
 
 export async function logout() {
-  try {
-    await signOut({ redirect: false })
-    redirect("/login")
-  } catch (error) {
-    console.error("Logout error:", error)
-    return { error: "Something went wrong. Please try again." }
-  }
+  deleteSession()
+  redirect("/login")
 }

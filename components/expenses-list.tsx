@@ -1,11 +1,14 @@
+"use client"
+
 import type React from "react"
 import type { Expense } from "@prisma/client"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Home, ShoppingBag, CreditCard, Car, Coffee } from "lucide-react"
+import { Home, ShoppingBag, CreditCard, Car, Coffee, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow, format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 interface ExpensesListProps {
   expenses: Expense[]
@@ -19,23 +22,33 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
 
   if (sortedExpenses.length === 0) {
     return (
-      <div className="text-center py-6 text-slate-500">No expenses recorded yet. Add expenses to see them here.</div>
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <Calendar className="h-12 w-12 text-slate-300 mb-3" />
+        <p className="text-slate-500 mb-2">No expenses recorded yet</p>
+        <p className="text-sm text-slate-400">Add expenses to see them here</p>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {sortedExpenses.map((item) => (
-        <ExpenseItem
+    <div className="space-y-4">
+      {sortedExpenses.map((item, index) => (
+        <motion.div
           key={item.id}
-          icon={getCategoryIcon(item.category)}
-          iconColor={getCategoryColor(item.category)}
-          title={item.title}
-          amount={formatCurrency(item.amount)}
-          category={item.category}
-          date={new Date(item.date)}
-          timestamp={format(new Date(item.date), "h:mm a")}
-        />
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05 }}
+        >
+          <ExpenseItem
+            icon={getCategoryIcon(item.category)}
+            iconColor={getCategoryColor(item.category)}
+            title={item.title}
+            amount={formatCurrency(item.amount)}
+            category={item.category}
+            date={new Date(item.date)}
+            timestamp={format(new Date(item.date), "h:mm a")}
+          />
+        </motion.div>
       ))}
     </div>
   )
@@ -53,15 +66,17 @@ interface ExpenseItemProps {
 
 function ExpenseItem({ icon, iconColor, title, amount, category, date, timestamp }: ExpenseItemProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
       <div className="flex items-center">
-        <Avatar className={`h-9 w-9 ${iconColor}`}>
+        <Avatar className={`h-10 w-10 ${iconColor}`}>
           <AvatarFallback className="text-white">{icon}</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">{title}</p>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{category}</Badge>
+            <Badge variant="outline" className="bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200">
+              {category}
+            </Badge>
             <p className="text-xs text-slate-500">
               {formatDistanceToNow(date, { addSuffix: true })} at {timestamp}
             </p>
@@ -94,16 +109,16 @@ function getCategoryIcon(category: string) {
 function getCategoryColor(category: string) {
   switch (category) {
     case "Housing":
-      return "bg-rose-500"
+      return "bg-gradient-to-r from-rose-500 to-pink-400"
     case "Food":
-      return "bg-amber-500"
+      return "bg-gradient-to-r from-amber-500 to-orange-400"
     case "Utilities":
-      return "bg-sky-500"
+      return "bg-gradient-to-r from-sky-500 to-blue-400"
     case "Transportation":
-      return "bg-violet-500"
+      return "bg-gradient-to-r from-violet-500 to-purple-400"
     case "Entertainment":
-      return "bg-emerald-500"
+      return "bg-gradient-to-r from-emerald-500 to-green-400"
     default:
-      return "bg-slate-500"
+      return "bg-gradient-to-r from-slate-500 to-slate-400"
   }
 }
