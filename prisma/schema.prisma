@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  incomes     Income[]
+  expenses    Expense[]
+  budgetItems BudgetItem[]
+}
+
+model Income {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  amount      Float
+  category    String
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
+}
+
+model Expense {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  amount      Float
+  category    String
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
+}
+
+model BudgetItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  cost      Float
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
+}
