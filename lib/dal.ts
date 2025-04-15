@@ -96,14 +96,3 @@ export const getAuthUser = cache(async () => {
 
 
 
-
-// Redirect to login if not authenticated
-export const requireAuth = cache(async () => {
-  const session = await verifySession()
-
-  if (!session) {
-    redirect("/login")
-  }
-
-  return session
-})

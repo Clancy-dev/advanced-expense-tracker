@@ -8,7 +8,7 @@ export type SessionPayloadProps = {
   userId: string
   role: UserRole
   email: string
-  name: string
+  fullName: string
   expiresAt: Date;
 }
 
@@ -56,7 +56,7 @@ export async function createSession(user: User){
       userId: user.id,
       role: user.role,
       email: user.email,
-      name: user.fullName,
+      fullName: user.fullName,
       expiresAt: expiresAt,
     }
 
