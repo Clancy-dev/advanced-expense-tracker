@@ -28,7 +28,7 @@ export async function encrypt(payload: SessionPayloadProps) {
       .setExpirationTime("7d")
       .sign(secretKey)
   } catch (error) {
-    console.error("Error encrypting session:", error)
+    console.log("Error encrypting session:", error)
     throw new Error("Failed to create session token")
   }
 }
@@ -43,7 +43,7 @@ export async function decrypt(session: string | undefined = ""){
     })
     return payload 
   } catch (error) {
-    console.error("Failed to verify session:", error)
+    console.log("Failed to verify session:", error)
     
   }
 }
@@ -72,7 +72,7 @@ export async function createSession(user: User){
     })
 
   } catch (error) {
-    console.error("Error creating session:", error)
+    console.log("Error creating session:", error)
     
   }
 }
@@ -97,7 +97,7 @@ export async function updateSession(){
     })
 
   } catch (error) {
-    console.error("Error updating session:", error)
+    console.log("Error updating session:", error)
     
   }
 }
@@ -107,6 +107,6 @@ export async function deleteSession() {
     const cookieStore = await cookies()
     cookieStore.delete("session")
   } catch (error) {
-    console.error("Error deleting session:", error)
+    console.log("Error deleting session:", error)
   }
 }

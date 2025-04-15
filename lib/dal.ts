@@ -32,7 +32,7 @@ export const verifySession = cache(async () => {
   try {  
     const cookie = (await cookies()).get('session')?.value
     if (!cookie) {
-      console.error("Cookie not found")
+      console.log("Cookie not found")
     }
     const session = await decrypt(cookie)
     if (!session?.userId) {

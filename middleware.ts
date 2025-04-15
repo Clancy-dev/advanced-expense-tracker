@@ -8,10 +8,6 @@ const publicRoutes = ["/login", "/signup", "/"]
 const authRoutes = ["/login", "/signup"]
 
 export default async function middleware(req: NextRequest) {
-  // Skip middleware for API routes
-  if (req.nextUrl.pathname.startsWith("/api/")) {
-    return NextResponse.next()
-  }
 
   // 2. Check if the current route is protected or public
   const path = req.nextUrl.pathname
