@@ -6,7 +6,7 @@ import { compareSync } from "bcrypt-ts"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password } = await request.json();
 
     // Find user by email
     const existingUser = await db.user.findFirst({
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
     await createSession(existingUser)
 
     // Remove sensitive data before returning
-    const { password: returnedPassword, ...others } = existingUser
+    const { password:returnedPassword,token,...others } = existingUser
 
-    revalidatePath("/dashboard/users")
+    revalidatePath("/dashboard")
 
     return NextResponse.json(
       {

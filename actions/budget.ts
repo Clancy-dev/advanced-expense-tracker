@@ -9,6 +9,9 @@ export async function createBudgetItem(data: BudgetItemFormProps) {
   try {
     console.log("Creating budget item with data:", data)
     const session = await requireAuth()
+    if (typeof session.userId !== "string") {
+      throw new Error("Invalid userId type")
+    }
 
     const createdBudgetItem = await db.budgetItem.create({
       data: {

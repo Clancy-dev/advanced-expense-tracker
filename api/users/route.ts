@@ -6,9 +6,8 @@ import { hashSync } from "bcrypt-ts"
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse the request body
-    const body = await request.json()
-    const { fullName, email, password } = body
+    
+    const { fullName, email, password } = await request.json()
 
     if (!fullName || !email || !password) {
       return NextResponse.json(
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Create the data object with name instead of fullName to match our schema
     const data = {
-      name: fullName, // Changed from fullName to name to match our schema
+      fullName, // Changed from fullName to name to match our schema
       email,
       password: hashedPassword,
     }
@@ -55,14 +54,15 @@ export async function POST(request: NextRequest) {
     const newUser = await db.user.create({
       data,
     })
+    console.log(newUser)
 
     // Create session
     await createSession(newUser)
 
     // Remove sensitive data before returning
-    const { password: returnedPassword, ...others } = newUser
+    const { password: returnedPassword,token,...others } = newUser
 
-    revalidatePath("/dashboard/users")
+    revalidatePath("/dashboard")
 
     return NextResponse.json(
       {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         data: null,
-        error: "An error occurred during registration",
+        error: "An error occurred during registration or signing up",
       },
       {
         status: 500,

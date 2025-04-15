@@ -9,7 +9,7 @@ import { db } from "@/prisma/db"
 // Define the AuthUser interface to match what we're returning
 export interface AuthUser {
   id: string
-  name: string
+  fullName: string
   role: string
   email: string
   imageUrl?: string | null
@@ -21,26 +21,22 @@ export interface SessionData {
   userId: string
   data: {
     id: string
-    name: string
+    fullName: string
     role: string
     email: string
   }
 }
 
 // Verify the user's session
-export const verifySession = cache(async (): Promise<SessionData | null> => {
-  try {
-    const cookieStore = await cookies()
-    const cookie = cookieStore.get("session")?.value
-
+export const verifySession = cache(async () => {
+  try {  
+    const cookie = (await cookies()).get('session')?.value
     if (!cookie) {
-      return null
+      console.error("Cookie not found")
     }
-
     const session = await decrypt(cookie)
-
     if (!session?.userId) {
-      return null
+      redirect('/login')
     }
 
     return {
@@ -54,54 +50,55 @@ export const verifySession = cache(async (): Promise<SessionData | null> => {
       },
     }
   } catch (error) {
-    console.error("Error verifying session:", error)
-    return null
+    console.log("Error verifying session:", error)
   }
 })
 
 // Get the authenticated user
-export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
+export const getAuthUser = cache(async () => {
   try {
     const session = await verifySession()
-
     if (!session) {
       return null
     }
 
-    const id = session.userId
+    const id = String(session.userId)
 
     const user = await db.user.findUnique({
       where: {
-        id,
+        id
       },
       select: {
-        name: true,
-        //        role: true, // Removed because 'role' does not exist in the User type
+        fullName: true,
+        role: true,
         email: true,
-        // imageUrl: true, // Removed because it does not exist in the UserSelect type
+        imageUrl: true,
       },
     })
 
     if (!user) {
-      return null
+      console.log("User not found")
     }
 
     // Construct and return the AuthUser object
     return {
       id,
-      name: user.name ?? "Unknown",
-      role: "Unknown", // Added a default value for 'role'
-      email: user.email,
-      // imageUrl: user.imageUrl, // Removed because it does not exist in the User type
-    }
+      fullName: user?.fullName || "",
+      role: user?.role || "",
+      email: user?.email || "",
+      imageUrl: user?.imageUrl || null,
+    } as AuthUser
   } catch (error) {
-    console.error("Failed to fetch user:", error)
+    console.log("Failed to fetch user:", error)
     return null
   }
 })
 
+
+
+
 // Redirect to login if not authenticated
-export const requireAuth = cache(async (): Promise<SessionData> => {
+export const requireAuth = cache(async () => {
   const session = await verifySession()
 
   if (!session) {

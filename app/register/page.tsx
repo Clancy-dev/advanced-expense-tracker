@@ -78,11 +78,12 @@ export default function RegisterPage() {
       router.refresh()
     } catch (error) {
       console.error("Registration failed:", error)
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      })
+      return Error
+      // toast({
+      //   title: "Error",
+      //   description: "An unexpected error occurred. Please try again.",
+      //   variant: "destructive",
+      // })
       setIsLoading(false)
     }
   }

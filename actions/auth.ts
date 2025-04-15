@@ -9,12 +9,12 @@ import { deleteSession } from "@/lib/session"
 
 export async function register(formData: FormData) {
   try {
-    const name = formData.get("name") as string
+    const fullName = formData.get("fullName") as string
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!fullName || !email || !password || !confirmPassword) {
       return { error: "All fields are required" }
     }
 
@@ -33,11 +33,11 @@ export async function register(formData: FormData) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
-
+    // const fullName = fullName.trim()
     // Create user
     const user = await db.user.create({
       data: {
-        name,
+        fullName,
         email,
         password: hashedPassword,
       },
