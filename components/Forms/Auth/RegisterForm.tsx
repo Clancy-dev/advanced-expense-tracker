@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import toast from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast"
 
 export type RegisterProps = {
   fullName: string
@@ -20,51 +19,54 @@ export type RegisterProps = {
 }
 
 export default function RegisterForm() {
-  
   const {
-      register,
-      handleSubmit,
-      reset,
-      formState: { errors },
-      getValues,
-    } = useForm<RegisterProps>({
-        defaultValues: {
-          fullName: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        },
-      })
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
-    const [showPassword, setShowPassword] = useState(false)
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    const [registerError, setRegisterError] = useState("")
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    getValues,
+  } = useForm<RegisterProps>({
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  })
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const [registerError, setRegisterError] = useState("")
 
   async function saveData(data: RegisterProps) {
     try {
       setLoading(true)
-      const response = await fetch(`${baseUrl}/api/v1/users`,{
-        method:"POST",
+      const response = await fetch(`${baseUrl}/api/users`, {
+        method: "POST",
         headers: {
-          "Content-Type":"application/json"
+          "Content-Type": "application/json",
         },
-        body:JSON.stringify(data),
-      });
-      console.log(response) 
-      if(response.status==409){
-        setRegisterError("Email is already in Use!")
-        return;
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          setRegisterError("Email is already in use.")
+          toast.error("Failed to create account!")
+          return
+        }
+        throw new Error("Registration failed")
       }
-      toast.success("Account has been created Successfully!")
-      reset()  
+
+      toast.success("Account has been created successfully!")
+      reset()
       router.push("/dashboard")
       router.refresh()
-      
     } catch (error) {
       toast.error("Failed to create account!")
-      console.log(error) 
+      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -72,6 +74,7 @@ export default function RegisterForm() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50 px-4">
+      <Toaster position="top-center" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
@@ -103,7 +106,7 @@ export default function RegisterForm() {
                 })}
               />
               {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
-              {registerError&&<p className="text-red-500 text-sm">Email is already in use.</p>}
+              {registerError && <p className="text-red-500 text-sm">{registerError}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

@@ -6,64 +6,63 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import toast from "react-hot-toast"
+import { Toaster } from "react-hot-toast"
 
-export type loginProps = {
+export type LoginProps = {
   email: string
   password: string
 }
 
 export default function LoginForm() {
-  
-    const {
-      register,
-      handleSubmit,
-      reset,
-      formState: { errors },
-    } = useForm<loginProps>();
-    const [formError, setFormError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    const [loginError, setLoginError] = useState("")
-    const [showPassword, setShowPassword] = useState(false)
-   
-  
-     async function loginUser(data: loginProps) {
-      try {
-        setLoading(true)
-        const response = await fetch(`${baseUrl}/api/v1/login`,{
-          method:"POST",
-          headers: {
-            "Content-Type":"application/json"
-          },
-          body:JSON.stringify(data),
-        });
-        console.log(response) 
-        if(response.status==403){
-          // 403 -> Forbidden
-          setLoginError("Wrong Credentials!")
-          return;
-        }
-        toast.success("Login successful!")
-        reset()  
-        router.push("/dashboard")
-        router.refresh()
-        
-      } catch (error) {
-        toast.error("Login Failed!")
-        console.log(error) 
-      } finally {
-        setLoading(false)
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<LoginProps>()
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const [showPassword, setShowPassword] = useState(false)
+
+  async function loginUser(data: LoginProps) {
+    try {
+      setLoading(true)
+      const response = await fetch(`${baseUrl}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        // Any non-2xx status code will trigger this
+        toast.error("Failed to login")
+        return
       }
+
+      // Only show success toast if we get a successful response
+      toast.success("Successfully logged in")
+      reset()
+      router.push("/dashboard")
+      router.refresh()
+    } catch (error) {
+      // This catches network errors
+      toast.error("Failed to login")
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
-  
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50 px-4">
+      <Toaster position="top-center" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
