@@ -18,7 +18,7 @@ export default function WelcomePage() {
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/docs">Learn More</Link>
+            <Link href="/">Learn More</Link>
           </Button>
         </div>
       </div>
