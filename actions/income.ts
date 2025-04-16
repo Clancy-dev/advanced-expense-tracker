@@ -36,12 +36,12 @@ export async function createIncome(data: IncomeFormProps) {
 
 export async function fetchIncomes() {
   try {
-    const session = await requireAuth()
+    // const session = await requireAuth()
 
     const fetchedIncomes = await db.income.findMany({
-      where: {
-        userId: session.userId,
-      },
+      // where: {
+      //   // userId: session.userId,
+      // },
       orderBy: {
         date: "desc",
       },
@@ -58,12 +58,12 @@ export async function fetchIncomes() {
 // Other functions remain the same...
 export async function fetchIncomeById(id: string) {
   try {
-    const session = await requireAuth()
+    // const session = await requireAuth()
 
     const fetchedIncome = await db.income.findUnique({
       where: {
         id,
-        userId: session.userId,
+        // userId: session.userId,
       },
     })
 

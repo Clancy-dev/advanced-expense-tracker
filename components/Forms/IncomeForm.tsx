@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import toast, { Toaster } from "react-hot-toast"
 import { CalendarIcon, Clock } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -26,7 +26,7 @@ const incomeSchema = z.object({
   description: z.string().optional(),
 })
 
-export type IncomeFormProps ={
+export type IncomeFormProps = {
   title: string
   amount: number
   category: string
@@ -36,7 +36,6 @@ export type IncomeFormProps ={
 
 export default function IncomeForm() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<IncomeFormProps>({
@@ -62,22 +61,12 @@ export default function IncomeForm() {
       }
 
       console.log("Income created successfully:", result.data)
-
-      toast({
-        title: "Income recorded",
-        description: "Your income has been successfully recorded.",
-        variant: "default",
-      })
+      toast.success("Income recorded successfully")
 
       router.push("/dashboard/income")
     } catch (error) {
       console.error("Error submitting income form:", error)
-
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "There was an error recording your income.",
-        variant: "destructive",
-      })
+      toast.error("Failed to record income")
     } finally {
       setIsSubmitting(false)
     }
@@ -85,6 +74,7 @@ export default function IncomeForm() {
 
   return (
     <div className="max-w-2xl mx-auto py-6">
+      <Toaster position="top-center" />
       <h1 className="text-3xl font-bold tracking-tight mb-6">Add Income</h1>
 
       <Card className="border border-emerald-100 shadow-md">
@@ -133,7 +123,7 @@ export default function IncomeForm() {
                 onValueChange={(value) => form.setValue("category", value)}
                 defaultValue={form.getValues("category")}
               >
-                <SelectTrigger className="border-emerald-200 focus:ring-emerald-200">
+                <SelectTrigger id="category" className="border-emerald-200 focus:ring-emerald-200">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,22 +149,18 @@ export default function IncomeForm() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal border-emerald-200 focus:ring-emerald-200",
-                        !form.getValues("date") && "text-muted-foreground",
+                        !form.watch("date") && "text-muted-foreground",
                       )}
                       type="button"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 text-emerald-500" />
-                      {form.getValues("date") ? (
-                        format(new Date(form.getValues("date")), "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
+                      {form.watch("date") ? format(new Date(form.watch("date")), "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={form.getValues("date") ? new Date(form.getValues("date")) : undefined}
+                      selected={form.watch("date") ? new Date(form.watch("date")) : undefined}
                       onSelect={(date) => date && form.setValue("date", date.toISOString())}
                       initialFocus
                       className="rounded-md border border-emerald-200"
@@ -195,14 +181,14 @@ export default function IncomeForm() {
                     type="button"
                     onClick={() => {
                       // Update the time component of the date
-                      const currentDate = form.getValues("date") ? new Date(form.getValues("date")) : new Date()
+                      const currentDate = form.watch("date") ? new Date(form.watch("date")) : new Date()
                       const now = new Date()
                       currentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
                       form.setValue("date", currentDate.toISOString())
                     }}
                   >
                     <Clock className="mr-2 h-4 w-4 text-emerald-500" />
-                    {form.getValues("date") ? format(new Date(form.getValues("date")), "h:mm a") : "Set time"}
+                    {form.watch("date") ? format(new Date(form.watch("date")), "h:mm a") : "Set time"}
                   </Button>
                 </div>
               </div>
