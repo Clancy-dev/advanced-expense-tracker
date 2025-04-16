@@ -3,9 +3,9 @@ import { cookies } from 'next/headers'
 import { decrypt } from "./lib/session"
 
 // 1. Specify protected and public routes
-const protectedRoutes = ["/","/dashboard", "/dashboard/income", "/dashboard/expenses", "/dashboard/budget"]
+const protectedRoutes = ["/dashboard", "/dashboard/income", "/dashboard/expenses", "/dashboard/budget"]
 const publicApiRoutes = ["/api/auth/login", "/api/auth/signup", "/api/auth/logout"]
-const publicRoutes = ["/login", "/signup"]
+const publicRoutes = ["/login", "/signup","/"]
 const authRoutes = ["/login", "/signup"]
 
 // Test

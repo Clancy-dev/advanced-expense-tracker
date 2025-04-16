@@ -49,7 +49,7 @@ export default function LoginForm() {
       // Only show success toast if we get a successful response
       toast.success("Successfully logged in")
       reset()
-      router.push("/")
+      router.push("/dashboard")
       router.refresh()
     } catch (error) {
       // This catches network errors

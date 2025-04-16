@@ -64,7 +64,7 @@ export default function RegisterForm() {
 
       toast.success("Account has been created successfully!")
       reset()
-      router.push("/")
+      router.push("/dashboard")
       router.refresh()
     } catch (error) {
       toast.error("Failed to create account!")
