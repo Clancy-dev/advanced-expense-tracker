@@ -3,18 +3,18 @@
 import type { IncomeFormProps } from "@/components/Forms/IncomeForm"
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
-import { requireAuth } from "@/lib/dal"
+// import { requireAuth } from "@/lib/dal"
 
 export async function createIncome(data: IncomeFormProps) {
   try {
     console.log("Creating income with data:", data)
-    const session = await requireAuth()
+    // const session = await requireAuth()
 
     const createdIncome = await db.income.create({
       data: {
         ...data,
         date: new Date(data.date),
-        userId: session.userId,
+        // userId: session.userId,
       },
     })
 

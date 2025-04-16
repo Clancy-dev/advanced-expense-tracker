@@ -27,7 +27,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  incomes     Income[]
+  // incomes     Income[]
   expenses    Expense[]
   budgetItems BudgetItem[]
 }
@@ -43,8 +43,8 @@ model Income {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.ObjectId
+  // user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // userId String @db.ObjectId
 }
 
 model Expense {

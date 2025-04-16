@@ -26,7 +26,13 @@ const incomeSchema = z.object({
   description: z.string().optional(),
 })
 
-export type IncomeFormProps = z.infer<typeof incomeSchema>
+export type IncomeFormProps ={
+  title: string
+  amount: number
+  category: string
+  date: string
+  description?: string
+}
 
 export default function IncomeForm() {
   const router = useRouter()
