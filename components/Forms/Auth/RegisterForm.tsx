@@ -76,7 +76,7 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 px-4">
+    <div className="flex items-center justify-center min-h-screen bg-slate-50 px-4 w-[40rem]">
       <Toaster position="top-center" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
