@@ -1,3 +1,4 @@
+
 import "server-only"
 
 import { cookies } from "next/headers"
@@ -6,6 +7,17 @@ import { decrypt } from "./session"
 import { redirect } from "next/navigation"
 import { db } from "@/prisma/db"
 import { UserRole } from "@prisma/client"
+
+export type SessionData = {
+  isAuth: true
+  userId: string
+  data: {
+    id: string
+    fullName: string
+    role: string
+    email: string
+  }
+}
 
 // Define the AuthUser interface to match what we're returning
 type AuthUser = {
@@ -18,19 +30,16 @@ type AuthUser = {
 
 
 // Verify the user's session
-export const verifySession = cache(async () => { 
+export const verifySession = cache(async (): Promise<SessionData> => { 
     const cookie = (await cookies()).get('session')?.value
-    if (!cookie) {
-      console.log("Cookie not found")
-    }
-    const session = await decrypt(cookie)
+    const session = await decrypt(cookie) as { userId?: string; fullName?: string; role?: string; email?: string }
     if (!session?.userId) {
       redirect('/login')
     }
 
     return {
       isAuth: true,
-      userId: session.userId,
+      userId: session.userId as string,
       data: {
         id: session.userId as string,
         fullName: session.fullName as string,
@@ -47,7 +56,7 @@ export const getAuthUser = cache(async () => {
       return null
     }
 
-    const id = String(session.userId)
+    const id = session.userId as string
    try{
     const user = await db.user.findUnique({
       where: {
@@ -60,10 +69,6 @@ export const getAuthUser = cache(async () => {
         imageUrl: true,
       },
     })
-
-    if (!user) {
-      console.log("User not found")
-    }
 
     // Construct and return the AuthUser object
     return user as AuthUser

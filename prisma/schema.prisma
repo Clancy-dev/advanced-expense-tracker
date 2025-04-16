@@ -17,17 +17,17 @@ enum UserRole {
 
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
   fullName  String
+  email     String   @unique
   password  String
-  token     String?
   role      UserRole @default(USER)
+  token     String? 
   imageUrl  String?  @default("https://1it2ia708f.ufs.sh/f/iaQFLA2t9vCq7rECS5IWxR3khOguZcJQbXtU2VCEa9jTqvfF")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  // incomes     Income[]
+  incomes     Income[]
   expenses    Expense[]
   budgetItems BudgetItem[]
 }
@@ -43,8 +43,8 @@ model Income {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  // user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
 }
 
 model Expense {

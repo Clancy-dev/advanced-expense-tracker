@@ -3,16 +3,12 @@
 import type { BudgetItemFormProps } from "@/components/Forms/BudgetItemForm"
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
-import { requireAuth } from "@/lib/dal"
+import { verifySession } from "@/lib/dal"
 
 export async function createBudgetItem(data: BudgetItemFormProps) {
   try {
     console.log("Creating budget item with data:", data)
-    const session = await requireAuth()
-    if (typeof session.userId !== "string") {
-      throw new Error("Invalid userId type")
-    }
-
+    const session = await verifySession()   
     const createdBudgetItem = await db.budgetItem.create({
       data: {
         ...data,
@@ -38,7 +34,7 @@ export async function createBudgetItem(data: BudgetItemFormProps) {
 
 export async function fetchBudgetItems() {
   try {
-    const session = await requireAuth()
+    const session = await verifySession()
 
     const fetchedBudgetItems = await db.budgetItem.findMany({
       where: {
@@ -60,7 +56,7 @@ export async function fetchBudgetItems() {
 // Other functions remain the same...
 export async function fetchBudgetItemById(id: string) {
   try {
-    const session = await requireAuth()
+    const session = await verifySession()
 
     const fetchedBudgetItem = await db.budgetItem.findUnique({
       where: {

@@ -3,12 +3,12 @@
 import type { ExpenseFormProps } from "@/components/Forms/ExpenseForm"
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
-import { requireAuth } from "@/lib/dal"
+import { verifySession } from "@/lib/dal"
 
 export async function createExpense(data: ExpenseFormProps) {
   try {
     console.log("Creating expense with data:", data)
-    const session = await requireAuth()
+    const session = await verifySession()
 
     const createdExpense = await db.expense.create({
       data: {
@@ -36,7 +36,7 @@ export async function createExpense(data: ExpenseFormProps) {
 
 export async function fetchExpenses() {
   try {
-    const session = await requireAuth()
+    const session = await verifySession()
 
     const fetchedExpenses = await db.expense.findMany({
       where: {
@@ -58,7 +58,7 @@ export async function fetchExpenses() {
 // Other functions remain the same...
 export async function fetchExpenseById(id: string) {
   try {
-    const session = await requireAuth()
+    const session = await verifySession()
 
     const fetchedExpense = await db.expense.findUnique({
       where: {

@@ -1,3 +1,4 @@
+
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
@@ -8,37 +9,23 @@ export async function POST(request: NextRequest) {
   try {
     
     const { fullName, email, password } = await request.json()
-
-    if (!fullName || !email || !password) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: "Missing required fields",
-        },
-        {
-          status: 400,
-        },
-      )
-    }
-
     // Check if user already exists
     const existingUser = await db.user.findFirst({
-      where: {
-        email,
-      },
-    })
+                  where:{
+                      email,
+                  },
+              })
+              if(existingUser){
+                  return NextResponse.json(
+                      {
+                         data:null,
+                         error: "Email Already Exists",
+                      },
+                        {
+                          status:409
+                        }
+                        )}
 
-    if (existingUser) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: "Email Already Exists",
-        },
-        {
-          status: 409,
-        },
-      )
-    }
 
     // Hash the password
     const hashedPassword = hashSync(password, 10)
@@ -74,17 +61,6 @@ export async function POST(request: NextRequest) {
       },
     )
   } catch (error) {
-    console.error("Registration error:", error)
-
-    // Return a proper error response
-    return NextResponse.json(
-      {
-        data: null,
-        error: "An error occurred during registration or signing up",
-      },
-      {
-        status: 500,
-      },
-    )
+    console.error("Registration error")
   }
 }

@@ -32,6 +32,8 @@ export type IncomeFormProps = {
   category: string
   date: string
   description?: string
+  userId?: string
+  
 }
 
 export default function IncomeForm() {

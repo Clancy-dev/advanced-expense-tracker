@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import toast, { Toaster } from "react-hot-toast"
 import { CalendarIcon, Clock } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -26,11 +26,17 @@ const expenseSchema = z.object({
   description: z.string().optional(),
 })
 
-export type ExpenseFormProps = z.infer<typeof expenseSchema>
+export type ExpenseFormProps = {
+  title: string
+  amount: number
+  category: string
+  date: string
+  description?: string
+  userId?: string
+}
 
 export default function ExpenseForm() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<ExpenseFormProps>({
@@ -56,22 +62,12 @@ export default function ExpenseForm() {
       }
 
       console.log("Expense created successfully:", result.data)
-
-      toast({
-        title: "Expense recorded",
-        description: "Your expense has been successfully recorded.",
-        variant: "default",
-      })
+      toast.success("Expense recorded successfully")
 
       router.push("/dashboard/expenses")
     } catch (error) {
       console.error("Error submitting expense form:", error)
-
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "There was an error recording your expense.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to record expense")
     } finally {
       setIsSubmitting(false)
     }
@@ -79,6 +75,7 @@ export default function ExpenseForm() {
 
   return (
     <div className="max-w-2xl mx-auto py-6">
+      <Toaster position="top-center" />
       <h1 className="text-3xl font-bold tracking-tight mb-6">Add Expense</h1>
 
       <Card className="border border-rose-100 shadow-md">
@@ -127,7 +124,7 @@ export default function ExpenseForm() {
                 onValueChange={(value) => form.setValue("category", value)}
                 defaultValue={form.getValues("category")}
               >
-                <SelectTrigger className="border-rose-200 focus:ring-rose-200">
+                <SelectTrigger id="category" className="border-rose-200 focus:ring-rose-200">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -155,22 +152,18 @@ export default function ExpenseForm() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal border-rose-200 focus:ring-rose-200",
-                        !form.getValues("date") && "text-muted-foreground",
+                        !form.watch("date") && "text-muted-foreground",
                       )}
                       type="button"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 text-rose-500" />
-                      {form.getValues("date") ? (
-                        format(new Date(form.getValues("date")), "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
+                      {form.watch("date") ? format(new Date(form.watch("date")), "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={form.getValues("date") ? new Date(form.getValues("date")) : undefined}
+                      selected={form.watch("date") ? new Date(form.watch("date")) : undefined}
                       onSelect={(date) => date && form.setValue("date", date.toISOString())}
                       initialFocus
                       className="rounded-md border border-rose-200"
@@ -191,14 +184,14 @@ export default function ExpenseForm() {
                     type="button"
                     onClick={() => {
                       // Update the time component of the date
-                      const currentDate = form.getValues("date") ? new Date(form.getValues("date")) : new Date()
+                      const currentDate = form.watch("date") ? new Date(form.watch("date")) : new Date()
                       const now = new Date()
                       currentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
                       form.setValue("date", currentDate.toISOString())
                     }}
                   >
                     <Clock className="mr-2 h-4 w-4 text-rose-500" />
-                    {form.getValues("date") ? format(new Date(form.getValues("date")), "h:mm a") : "Set time"}
+                    {form.watch("date") ? format(new Date(form.watch("date")), "h:mm a") : "Set time"}
                   </Button>
                 </div>
               </div>

@@ -1,20 +1,20 @@
 "use server"
 
 import type { IncomeFormProps } from "@/components/Forms/IncomeForm"
+import { verifySession } from "@/lib/dal"
 import { db } from "@/prisma/db"
 import { revalidatePath } from "next/cache"
-// import { requireAuth } from "@/lib/dal"
+
 
 export async function createIncome(data: IncomeFormProps) {
   try {
     console.log("Creating income with data:", data)
-    // const session = await requireAuth()
-
+    const session = await verifySession()
     const createdIncome = await db.income.create({
       data: {
         ...data,
         date: new Date(data.date),
-        // userId: session.userId,
+        userId: session.userId,
       },
     })
 
@@ -36,12 +36,13 @@ export async function createIncome(data: IncomeFormProps) {
 
 export async function fetchIncomes() {
   try {
-    // const session = await requireAuth()
+     const session = await verifySession()
+     
 
     const fetchedIncomes = await db.income.findMany({
-      // where: {
-      //   // userId: session.userId,
-      // },
+      where: {
+         userId: session.userId,
+      },
       orderBy: {
         date: "desc",
       },

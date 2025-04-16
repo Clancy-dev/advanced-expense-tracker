@@ -9,21 +9,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import toast, { Toaster } from "react-hot-toast"
 import { createBudgetItem } from "@/actions/budget"
 import { useState } from "react"
 
+// Update to match your Prisma enum
 const budgetItemSchema = z.object({
   title: z.string().min(1, "Title is required"),
   cost: z.coerce.number().positive("Cost must be a positive number"),
-  category: z.enum(["Most Important", "Less Important"]),
+  category: z.enum(["MOST_IMPORTANT", "LESS_IMPORTANT"]),
 })
 
-export type BudgetItemFormProps = z.infer<typeof budgetItemSchema>
+export type BudgetItemFormProps = {
+  title: string
+  cost: number
+  category: "MOST_IMPORTANT" | "LESS_IMPORTANT"
+  userId?: string
+}
 
 export default function BudgetItemForm() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<BudgetItemFormProps>({
@@ -31,7 +36,7 @@ export default function BudgetItemForm() {
     defaultValues: {
       title: "",
       cost: undefined,
-      category: "Most Important",
+      category: "MOST_IMPORTANT",
     },
   })
 
@@ -47,22 +52,12 @@ export default function BudgetItemForm() {
       }
 
       console.log("Budget item created successfully:", result.data)
-
-      toast({
-        title: "Budget item created",
-        description: "Your budget item has been successfully created.",
-        variant: "default",
-      })
+      toast.success("Budget item created successfully")
 
       router.push("/dashboard/budget")
     } catch (error) {
       console.error("Error submitting budget item form:", error)
-
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "There was an error creating your budget item.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to create budget item")
     } finally {
       setIsSubmitting(false)
     }
@@ -70,6 +65,7 @@ export default function BudgetItemForm() {
 
   return (
     <div className="max-w-2xl mx-auto py-6">
+      <Toaster position="top-center" />
       <h1 className="text-3xl font-bold tracking-tight mb-6">Add Budget Item</h1>
 
       <Card className="border border-purple-100 shadow-md">
@@ -115,18 +111,18 @@ export default function BudgetItemForm() {
             <div className="space-y-2">
               <Label className="text-purple-700">Category</Label>
               <RadioGroup
-                defaultValue="Most Important"
-                onValueChange={(value) => form.setValue("category", value as "Most Important" | "Less Important")}
+                defaultValue={form.watch("category") || "MOST_IMPORTANT"}
+                onValueChange={(value) => form.setValue("category", value as "MOST_IMPORTANT" | "LESS_IMPORTANT")}
                 className="space-y-3"
               >
                 <div className="flex items-center space-x-2 bg-white p-3 rounded-md border border-purple-100 hover:border-purple-200 transition-colors">
-                  <RadioGroupItem value="Most Important" id="most-important" className="text-purple-600" />
+                  <RadioGroupItem value="MOST_IMPORTANT" id="most-important" className="text-purple-600" />
                   <Label htmlFor="most-important" className="font-medium cursor-pointer">
                     Most Important
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 bg-white p-3 rounded-md border border-purple-100 hover:border-purple-200 transition-colors">
-                  <RadioGroupItem value="Less Important" id="less-important" className="text-purple-600" />
+                  <RadioGroupItem value="LESS_IMPORTANT" id="less-important" className="text-purple-600" />
                   <Label htmlFor="less-important" className="font-medium cursor-pointer">
                     Less Important but Needed
                   </Label>
