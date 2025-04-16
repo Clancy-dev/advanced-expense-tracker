@@ -41,6 +41,7 @@ export default function RegisterForm() {
   const [registerError, setRegisterError] = useState("")
 
   async function saveData(data: RegisterProps) {
+    console.log(data)
     try {
       setLoading(true)
       const response = await fetch(`${baseUrl}/api/users`, {
@@ -57,7 +58,8 @@ export default function RegisterForm() {
           toast.error("Failed to create account!")
           return
         }
-        throw new Error("Registration failed")
+        
+        // throw new Error("Registration failed")
       }
 
       toast.success("Account has been created successfully!")
@@ -67,6 +69,7 @@ export default function RegisterForm() {
     } catch (error) {
       toast.error("Failed to create account!")
       console.error(error)
+      return Error
     } finally {
       setLoading(false)
     }

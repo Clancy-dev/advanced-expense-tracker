@@ -151,7 +151,7 @@ export async function createSession(user: User){
       role: user.role,
       email: user.email,
       fullName: user.fullName,
-      expiresAt: expiresAt,
+      expiresAt: expiresAt
     }
     const session = await encrypt(payloadData)
     const cookieStore = await cookies()
