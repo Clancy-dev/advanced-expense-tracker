@@ -1,11 +1,30 @@
 "use client"
 
+import { useState } from "react"
 import type React from "react"
 import type { Expense } from "@prisma/client"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Home, ShoppingBag, CreditCard, Car, Coffee, Calendar } from "lucide-react"
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar"
+import {
+  Home,
+  ShoppingBag,
+  CreditCard,
+  Car,
+  Coffee,
+  Calendar,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { formatDistanceToNow, format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
 import { motion } from "framer-motion"
@@ -14,25 +33,36 @@ interface ExpensesListProps {
   expenses: Expense[]
 }
 
+const ITEMS_PER_PAGE = 5
+
 export function ExpensesList({ expenses }: ExpensesListProps) {
-  // Sort expenses by date (newest first)
-  const sortedExpenses = [...expenses].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime()
-  })
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const sortedExpenses = [...expenses].sort(
+    (a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
+  const totalPages = Math.ceil(sortedExpenses.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+  const currentExpenses = sortedExpenses.slice(startIndex, endIndex)
 
   if (sortedExpenses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Calendar className="h-12 w-12 text-slate-300 mb-3" />
         <p className="text-slate-500 mb-2">No expenses recorded yet</p>
-        <p className="text-sm text-slate-400">Add expenses to see them here</p>
+        <p className="text-sm text-slate-400">
+          Add expenses to see them here
+        </p>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      {sortedExpenses.map((item, index) => (
+      {currentExpenses.map((item, index) => (
         <motion.div
           key={item.id}
           initial={{ opacity: 0, y: 10 }}
@@ -50,6 +80,47 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
           />
         </motion.div>
       ))}
+
+      {totalPages > 1 && (
+        <Pagination className="pt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCurrentPage((prev) => Math.max(prev - 1, 1))
+                }}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  href="#"
+                  isActive={i + 1 === currentPage}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(i + 1)
+                  }}
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   )
 }
@@ -64,7 +135,15 @@ interface ExpenseItemProps {
   timestamp: string
 }
 
-function ExpenseItem({ icon, iconColor, title, amount, category, date, timestamp }: ExpenseItemProps) {
+function ExpenseItem({
+  icon,
+  iconColor,
+  title,
+  amount,
+  category,
+  date,
+  timestamp,
+}: ExpenseItemProps) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
       <div className="flex items-center">
@@ -74,7 +153,10 @@ function ExpenseItem({ icon, iconColor, title, amount, category, date, timestamp
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">{title}</p>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200">
+            <Badge
+              variant="outline"
+              className="bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200"
+            >
               {category}
             </Badge>
             <p className="text-xs text-slate-500">
@@ -88,7 +170,7 @@ function ExpenseItem({ icon, iconColor, title, amount, category, date, timestamp
   )
 }
 
-// Helper functions to get icon and color based on category
+// Helper functions
 function getCategoryIcon(category: string) {
   switch (category) {
     case "Housing":
