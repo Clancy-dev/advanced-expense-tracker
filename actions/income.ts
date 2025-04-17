@@ -79,3 +79,46 @@ export async function fetchIncomeById(id: string) {
     return null // Return null on failure
   }
 }
+
+
+
+
+
+export async function updateIncome(id: string, data: Partial<IncomeFormProps>) {
+  try {
+    const session = await verifySession()
+
+    const updated = await db.income.update({
+      where: {
+        id,
+        userId: session.userId,
+      },
+      data,
+    })
+
+    revalidatePath("/dashboard")
+    return { success: true, data: updated }
+  } catch (error) {
+    console.error("Error updating income:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
+  }
+}
+
+export async function deleteIncome(id: string) {
+  try {
+    const session = await verifySession()
+
+    await db.income.delete({
+      where: {
+        id,
+        userId: session.userId,
+      },
+    })
+
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting income:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
+  }
+}
