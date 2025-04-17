@@ -1,87 +1,124 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
+import { CreditCard, DollarSign, Edit2, Trash2 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { fetchIncomes } from "@/actions/income"
+import { fetchExpenses } from "@/actions/expense"
+// import { deleteActivity } from "@/actions/activity"
 import { formatCurrency } from "@/lib/utils"
-import { deleteIncome } from "@/actions/income"
-import { deleteExpense } from "@/actions/expense"
-import { Button } from "@/components/ui/button"
-import { Pencil, Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import toast from "react-hot-toast"
+import { toast } from "sonner"
+import { deleteActivity } from "@/actions/activity"
 
-interface Props {
-  incomes: { id: string; title: string; amount: number; createdAt: Date }[]
-  expenses: { id: string; title: string; amount: number; createdAt: Date }[]
+type ActivityType = "income" | "expense"
+
+interface Activity {
+  id: string
+  title: string
+  amount: number
+  description: string
+  date: Date
+  type: ActivityType
 }
 
-export function UserActivity({ incomes, expenses }: Props) {
-  const router = useRouter()
+export function UserActivity() {
+  const [activities, setActivities] = useState<Activity[]>([])
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
-  const allActivities = [
-    ...incomes.map((i) => ({ ...i, type: "income" as const })),
-    ...expenses.map((e) => ({ ...e, type: "expense" as const })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  useEffect(() => {
+    async function loadActivities() {
+      const [incomes, expenses] = await Promise.all([fetchIncomes(), fetchExpenses()])
 
-  const handleDelete = (id: string, type: "income" | "expense") => {
-    const confirmDelete = confirm("Are you sure you want to delete this?")
-    if (!confirmDelete) return
+      const incomeActivities: Activity[] = incomes.map((income: any) => ({
+        id: income.id,
+        title: "Income",
+        amount: income.amount,
+        description: income.source || "Income recorded",
+        date: new Date(income.date),
+        type: "income",
+      }))
 
+      const expenseActivities: Activity[] = expenses.map((expense: any) => ({
+        id: expense.id,
+        title: "Expense",
+        amount: expense.amount,
+        description: expense.category || "Expense recorded",
+        date: new Date(expense.date),
+        type: "expense",
+      }))
+
+      const merged = [...incomeActivities, ...expenseActivities].sort(
+        (a, b) => b.date.getTime() - a.date.getTime()
+      )
+
+      setActivities(merged.slice(0, 5)) // Latest 5
+    }
+
+    loadActivities()
+  }, [])
+
+  const handleDelete = (id: string, type: ActivityType) => {
     startTransition(async () => {
-      const res = type === "income" ? await deleteIncome(id) : await deleteExpense(id)
-      if (res.success) {
-        toast.success("Deleted successfully")
-        router.refresh()
-      } else {
-        toast.error(res.error || "Something went wrong")
-      }
+      await deleteActivity(id, type)
+      toast.success(`${type === "income" ? "Income" : "Expense"} deleted successfully`)
+      router.refresh()
     })
   }
 
   return (
-    <div className="space-y-4">
-      {allActivities.length === 0 && (
-        <p className="text-sm text-slate-500">No recent activity found.</p>
-      )}
-
-      {allActivities.map((item) => (
-        <div
-          key={item.id}
-          className="flex justify-between items-center border p-3 rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow"
+    <ul className="space-y-4">
+      {activities.map((activity) => (
+        <li
+          key={activity.id}
+          className="flex items-center justify-between gap-2 hover:bg-slate-50 p-2 rounded-md transition-all"
         >
-          <div>
-            <p className="font-medium">{item.title}</p>
-            <p className="text-sm text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
+          <div className="flex items-center gap-3">
+            <div
+              className={`h-9 w-9 rounded-full flex items-center justify-center 
+              ${activity.type === "income" ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}`}
+            >
+              {activity.type === "income" ? (
+                <DollarSign className="h-4 w-4" />
+              ) : (
+                <CreditCard className="h-4 w-4" />
+              )}
+            </div>
+            <div className="text-sm">
+              <p className="font-medium text-slate-700">{activity.description}</p>
+              <p className="text-slate-500 text-xs">
+                {formatDistanceToNow(activity.date, { addSuffix: true })}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-3">
             <span
-              className={`font-semibold text-sm ${
-                item.type === "income" ? "text-emerald-600" : "text-rose-600"
-              }`}
+              className={`text-sm font-semibold 
+              ${activity.type === "income" ? "text-emerald-600" : "text-rose-600"}`}
             >
-              {item.type === "income" ? "+" : "-"}
-              {formatCurrency(item.amount)}
+              {activity.type === "income" ? "+" : "-"}
+              {formatCurrency(activity.amount)}
             </span>
+
             <Link
-              href={`/dashboard/${item.type === "income" ? "income" : "expenses"}/${item.id}/edit`}
+              href={`/dashboard/${activity.type === "income" ? "income" : "expenses"}/${activity.id}/edit`}
+              className="text-blue-500 hover:text-blue-600"
             >
-              <Button size="icon" variant="ghost" className="text-slate-500 hover:text-blue-600">
-                <Pencil className="w-4 h-4" />
-              </Button>
+              <Edit2 className="h-4 w-4" />
             </Link>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => handleDelete(item.id, item.type)}
-              className="text-slate-500 hover:text-rose-600"
+            <button
+              onClick={() => handleDelete(activity.id, activity.type)}
               disabled={isPending}
+              className="text-rose-500 hover:text-rose-600 disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }

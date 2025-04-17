@@ -26,6 +26,7 @@ export type AuthUser = {
   role: UserRole
   email: string
   imageUrl: string | null
+  
 }
 
 
