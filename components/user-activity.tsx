@@ -1,88 +1,87 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { CreditCard, DollarSign } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { fetchIncomes } from "@/actions/income"
-import { fetchExpenses } from "@/actions/expense"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
 import { formatCurrency } from "@/lib/utils"
+import { deleteIncome } from "@/actions/income"
+import { deleteExpense } from "@/actions/expense"
+import { Button } from "@/components/ui/button"
+import { Pencil, Trash2 } from "lucide-react"
+import Link from "next/link"
+import toast from "react-hot-toast"
 
-type ActivityType = "income" | "expense"
-
-interface Activity {
-  id: string
-  title: string
-  amount: number
-  description: string
-  date: Date
-  type: ActivityType
+interface Props {
+  incomes: { id: string; title: string; amount: number; createdAt: Date }[]
+  expenses: { id: string; title: string; amount: number; createdAt: Date }[]
 }
 
-export function UserActivity() {
-  const [activities, setActivities] = useState<Activity[]>([])
+export function UserActivity({ incomes, expenses }: Props) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
-  useEffect(() => {
-    async function loadActivities() {
-      const [incomes, expenses] = await Promise.all([fetchIncomes(), fetchExpenses()])
+  const allActivities = [
+    ...incomes.map((i) => ({ ...i, type: "income" as const })),
+    ...expenses.map((e) => ({ ...e, type: "expense" as const })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-      const incomeActivities: Activity[] = incomes.map((income: any) => ({
-        id: income.id,
-        title: "Income",
-        amount: income.amount,
-        description: income.source || "Income recorded",
-        date: new Date(income.date),
-        type: "income",
-      }))
+  const handleDelete = (id: string, type: "income" | "expense") => {
+    const confirmDelete = confirm("Are you sure you want to delete this?")
+    if (!confirmDelete) return
 
-      const expenseActivities: Activity[] = expenses.map((expense: any) => ({
-        id: expense.id,
-        title: "Expense",
-        amount: expense.amount,
-        description: expense.category || "Expense recorded",
-        date: new Date(expense.date),
-        type: "expense",
-      }))
-
-      const merged = [...incomeActivities, ...expenseActivities].sort(
-        (a, b) => b.date.getTime() - a.date.getTime()
-      )
-
-      setActivities(merged.slice(0, 5)) // Limit to 5 most recent
-    }
-
-    loadActivities()
-  }, [])
+    startTransition(async () => {
+      const res = type === "income" ? await deleteIncome(id) : await deleteExpense(id)
+      if (res.success) {
+        toast.success("Deleted successfully")
+        router.refresh()
+      } else {
+        toast.error(res.error || "Something went wrong")
+      }
+    })
+  }
 
   return (
-    <ul className="space-y-4">
-      {activities.map((activity) => (
-        <li key={activity.id} className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className={`h-9 w-9 rounded-full flex items-center justify-center 
-                ${activity.type === "income" ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}`}
+    <div className="space-y-4">
+      {allActivities.length === 0 && (
+        <p className="text-sm text-slate-500">No recent activity found.</p>
+      )}
+
+      {allActivities.map((item) => (
+        <div
+          key={item.id}
+          className="flex justify-between items-center border p-3 rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow"
+        >
+          <div>
+            <p className="font-medium">{item.title}</p>
+            <p className="text-sm text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <span
+              className={`font-semibold text-sm ${
+                item.type === "income" ? "text-emerald-600" : "text-rose-600"
+              }`}
             >
-              {activity.type === "income" ? (
-                <DollarSign className="h-4 w-4" />
-              ) : (
-                <CreditCard className="h-4 w-4" />
-              )}
-            </div>
-            <div className="text-sm">
-              <p className="font-medium text-slate-700">{activity.description}</p>
-              <p className="text-slate-500 text-xs">
-                {formatDistanceToNow(activity.date, { addSuffix: true })}
-              </p>
-            </div>
+              {item.type === "income" ? "+" : "-"}
+              {formatCurrency(item.amount)}
+            </span>
+            <Link
+              href={`/dashboard/${item.type === "income" ? "income" : "expenses"}/${item.id}/edit`}
+            >
+              <Button size="icon" variant="ghost" className="text-slate-500 hover:text-blue-600">
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => handleDelete(item.id, item.type)}
+              className="text-slate-500 hover:text-rose-600"
+              disabled={isPending}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
-          <div
-            className={`text-sm font-semibold 
-              ${activity.type === "income" ? "text-emerald-600" : "text-rose-600"}`}
-          >
-            {activity.type === "income" ? "+" : "-"}{formatCurrency(activity.amount)}
-          </div>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }

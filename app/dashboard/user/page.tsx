@@ -18,7 +18,7 @@ export default async function UserPage() {
     .toUpperCase()
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+      <h1 className="text-3xl font-bold tracking-tight lg:ml-0 md:ml-0 sm:ml-0 ml-12">Profile</h1>
       <p className="text-slate-500">Manage your account and view your activity.</p>
 
       <div className="grid gap-6 md:grid-cols-[250px_1fr]">

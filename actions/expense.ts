@@ -74,3 +74,23 @@ export async function fetchExpenseById(id: string) {
     return null // Return null on failure
   }
 }
+
+
+export async function deleteExpense(id: string) {
+  try {
+    const session = await verifySession()
+
+    await db.expense.delete({
+      where: {
+        id,
+        userId: session.userId,
+      },
+    })
+
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting expense:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
+  }
+}

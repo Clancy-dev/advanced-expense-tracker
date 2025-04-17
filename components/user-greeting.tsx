@@ -37,7 +37,7 @@ export function UserGreeting({ fullName }: Props) {
   }, [])
 
   const firstName = fullName?.split(" ")[0] || "there"
-  const greeting = `${getGreeting()}, ${firstName} 👋`
+  const greeting = `${getGreeting()}, ${firstName}`
 
   return (
     <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-4 mb-2">
