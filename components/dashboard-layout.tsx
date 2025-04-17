@@ -8,8 +8,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
 import { logout } from "@/actions/auth"
-import type { AuthUser } from "@/lib/dal"
+// import type { AuthUser } from "@/lib/dal"
 import { usePathname } from "next/navigation"
+import { AuthUser } from "@/lib/dal"
+import { Header } from "@radix-ui/react-accordion"
+
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -61,10 +64,10 @@ function Sidebar({ className, user, pathname = "" }: SidebarProps) {
         {user && (
           <div className="mt-4 flex items-center">
             <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-400 flex items-center justify-center text-white font-medium">
-              {user.name.charAt(0)}
+              {user.fullName.charAt(0)}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium">{user.name}</p>
+              <p className="text-sm font-medium">{user.fullName}</p>
               <p className="text-xs text-slate-500">{user.email}</p>
             </div>
           </div>
@@ -95,7 +98,7 @@ function Sidebar({ className, user, pathname = "" }: SidebarProps) {
           label="Budget"
           active={pathname.includes("/dashboard/budget")}
         />
-        <NavItem href="/docs" icon={<FileText className="h-5 w-5" />} label="Reports" active={pathname === "/docs"} />
+        <NavItem href="/dashboard/docs" icon={<FileText className="h-5 w-5" />} label="Reports" active={pathname === "/docs"} />
         <NavItem
           href="/dashboard/user"
           icon={<User className="h-5 w-5" />}
@@ -113,7 +116,7 @@ function Sidebar({ className, user, pathname = "" }: SidebarProps) {
             Logout
           </Button>
         </form>
-        <p className="text-xs text-center text-slate-400 mt-4">© 2023 Expense Tracker</p>
+        <p className="text-xs text-center text-slate-400 mt-4">© 2025 Expense Tracker</p>
       </div>
     </div>
   )

@@ -20,7 +20,7 @@ export type SessionData = {
 }
 
 // Define the AuthUser interface to match what we're returning
-type AuthUser = {
+export type AuthUser = {
   id: string
   fullName: string
   role: UserRole

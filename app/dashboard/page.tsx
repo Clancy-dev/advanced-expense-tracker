@@ -9,9 +9,12 @@ import { fetchBudgetItems } from "@/actions/budget"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { UserGreeting } from "@/components/user-greeting"
+import { getAuthUser } from "@/lib/dal"
+
 
 export default async function DashboardPage() {
-  const [incomes, expenses, budgetItems] = await Promise.all([fetchIncomes(), fetchExpenses(), fetchBudgetItems()])
+  const [incomes, expenses, budgetItems,user] = await Promise.all([fetchIncomes(), fetchExpenses(), fetchBudgetItems(),getAuthUser()])
 
   // Calculate totals
   const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0)
@@ -26,10 +29,11 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold lg:ml-0 md:ml-0 sm:ml-0 ml-12 tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
             Dashboard
-          </h1>
-          <p className="text-slate-500 mt-1">Welcome to your financial overview.</p>
+        </h1>
+          {/* <p className="text-slate-500 mt-1">Welcome to your financial overview.</p> */}
+          <UserGreeting fullName={user?.fullName} />
         </div>
         <div className="flex gap-3">
           <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700">
