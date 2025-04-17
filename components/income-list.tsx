@@ -1,11 +1,29 @@
 "use client"
 
+import { useState } from "react"
 import type React from "react"
 import type { Income } from "@prisma/client"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Briefcase, DollarSign, Gift, Laptop, Calendar } from "lucide-react"
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar"
+import {
+  Briefcase,
+  DollarSign,
+  Gift,
+  Laptop,
+  Calendar,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { formatDistanceToNow, format } from "date-fns"
 import { formatCurrency } from "@/lib/utils"
 import { motion } from "framer-motion"
@@ -14,25 +32,36 @@ interface IncomeListProps {
   incomes: Income[]
 }
 
+const ITEMS_PER_PAGE = 5
+
 export function IncomeList({ incomes }: IncomeListProps) {
-  // Sort income by date (newest first)
-  const sortedIncome = [...incomes].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime()
-  })
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const sortedIncome = [...incomes].sort(
+    (a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
+  const totalPages = Math.ceil(sortedIncome.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+  const currentIncomes = sortedIncome.slice(startIndex, endIndex)
 
   if (sortedIncome.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Calendar className="h-12 w-12 text-slate-300 mb-3" />
         <p className="text-slate-500 mb-2">No income recorded yet</p>
-        <p className="text-sm text-slate-400">Add income to see it here</p>
+        <p className="text-sm text-slate-400">
+          Add income to see it here
+        </p>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      {sortedIncome.map((item, index) => (
+      {currentIncomes.map((item, index) => (
         <motion.div
           key={item.id}
           initial={{ opacity: 0, y: 10 }}
@@ -50,6 +79,47 @@ export function IncomeList({ incomes }: IncomeListProps) {
           />
         </motion.div>
       ))}
+
+      {totalPages > 1 && (
+        <Pagination className="pt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCurrentPage((prev) => Math.max(prev - 1, 1))
+                }}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  href="#"
+                  isActive={i + 1 === currentPage}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(i + 1)
+                  }}
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   )
 }
@@ -64,7 +134,15 @@ interface IncomeItemProps {
   timestamp: string
 }
 
-function IncomeItem({ icon, iconColor, title, amount, category, date, timestamp }: IncomeItemProps) {
+function IncomeItem({
+  icon,
+  iconColor,
+  title,
+  amount,
+  category,
+  date,
+  timestamp,
+}: IncomeItemProps) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
       <div className="flex items-center">
@@ -74,7 +152,10 @@ function IncomeItem({ icon, iconColor, title, amount, category, date, timestamp 
         <div className="ml-4 space-y-1">
           <p className="text-sm font-medium leading-none">{title}</p>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200">
+            <Badge
+              variant="outline"
+              className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200"
+            >
               {category}
             </Badge>
             <p className="text-xs text-slate-500">
@@ -88,7 +169,7 @@ function IncomeItem({ icon, iconColor, title, amount, category, date, timestamp 
   )
 }
 
-// Helper functions to get icon and color based on category
+// Helper functions
 function getCategoryIcon(category: string) {
   switch (category) {
     case "Employment":
