@@ -92,6 +92,7 @@ export function IncomeList({ incomes }: IncomeListProps) {
                 }}
               />
             </PaginationItem>
+            {/* TEST */}
 
             {Array.from({ length: totalPages }, (_, i) => (
               <PaginationItem key={i}>
