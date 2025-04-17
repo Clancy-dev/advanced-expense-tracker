@@ -3,8 +3,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserActivity } from "@/components/user-activity"
+import { getAuthUser } from "@/lib/dal"
 
-export default function UserPage() {
+export default async function UserPage() {
+  const user = await getAuthUser()
+
+  const fullName = user?.fullName || "User"
+  const email = user?.email || "user@example.com"
+  const initials = fullName
+    .split(" ")
+    .map(name => name[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
@@ -16,11 +27,11 @@ export default function UserPage() {
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
                 <AvatarImage src="/placeholder.svg?height=96&width=96" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="space-y-1 text-center">
-                <h2 className="text-xl font-bold">John Doe</h2>
-                <p className="text-sm text-slate-500">john.doe@example.com</p>
+                <h2 className="text-xl font-bold">{fullName}</h2>
+                <p className="text-sm text-slate-500">{email}</p>
               </div>
               <Button className="w-full" variant="outline">
                 Edit Profile
