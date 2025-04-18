@@ -3,20 +3,42 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, PiggyBank, CheckCircle, AlertCircle } from "lucide-react"
+import { Plus, PiggyBank } from "lucide-react"
 import { fetchBudgetItems } from "@/actions/budget"
 import { fetchExpenses } from "@/actions/expense"
 import { fetchIncomes } from "@/actions/income"
 import { formatCurrency } from "@/lib/utils"
+import { BudgetCard } from "@/components/budget-card"
+import { Toaster } from "react-hot-toast"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
-export default async function BudgetPage() {
+const ITEMS_PER_PAGE = 6
+
+export default async function BudgetPage({ searchParams }: { searchParams?: { mostPage?: string; lessPage?: string } }) {
   const [budgetItems, expenses, incomes] = await Promise.all([fetchBudgetItems(), fetchExpenses(), fetchIncomes()])
 
-  // Separate budget items by category
-  const mostImportantItems = budgetItems.filter((item) => item.category === "Most Important")
-  const lessImportantItems = budgetItems.filter((item) => item.category === "Less Important")
+  const mostImportantItems = budgetItems.filter((item) => item.category === "MOST_IMPORTANT")
+  const lessImportantItems = budgetItems.filter((item) => item.category === "LESS_IMPORTANT")
 
-  // Calculate totals
+  const mostPage = parseInt(searchParams?.mostPage || "1")
+  const lessPage = parseInt(searchParams?.lessPage || "1")
+
+  const mostStart = (mostPage - 1) * ITEMS_PER_PAGE
+  const lessStart = (lessPage - 1) * ITEMS_PER_PAGE
+
+  const paginatedMostItems = mostImportantItems.slice(mostStart, mostStart + ITEMS_PER_PAGE)
+  const paginatedLessItems = lessImportantItems.slice(lessStart, lessStart + ITEMS_PER_PAGE)
+
+  const mostPageCount = Math.ceil(mostImportantItems.length / ITEMS_PER_PAGE)
+  const lessPageCount = Math.ceil(lessImportantItems.length / ITEMS_PER_PAGE)
+
   const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0)
   const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0)
   const totalBudget = budgetItems.reduce((sum, item) => sum + item.cost, 0)
@@ -25,9 +47,10 @@ export default async function BudgetPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <Toaster position="top-center" />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl lg:ml-0 md:ml-0 sm:ml-0 ml-12 font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
             Budget
           </h1>
           <p className="text-slate-500 mt-1">Manage your budget items and track your spending.</p>
@@ -68,17 +91,43 @@ export default async function BudgetPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {mostImportantItems.map((item) => (
-                <BudgetCard
-                  key={item.id}
-                  title={item.title}
-                  cost={formatCurrency(item.cost)}
-                  progress={Math.min(100, Math.round((balance / item.cost) * 100))}
-                  attainable={balance >= item.cost}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedMostItems.map((item) => (
+                  <BudgetCard
+                    key={item.id}
+                    id={item.id}
+                    title={item.title}
+                    cost={formatCurrency(item.cost)}
+                    progress={Math.min(100, Math.round((balance / item.cost) * 100))}
+                    attainable={balance >= item.cost}
+                  />
+                ))}
+              </div>
+              {mostPageCount > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    {mostPage > 1 && (
+                      <PaginationItem>
+                        <PaginationPrevious href={`?mostPage=${mostPage - 1}&lessPage=${lessPage}`} />
+                      </PaginationItem>
+                    )}
+                    {Array.from({ length: mostPageCount }, (_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink href={`?mostPage=${i + 1}&lessPage=${lessPage}`} isActive={mostPage === i + 1}>
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    {mostPage < mostPageCount && (
+                      <PaginationItem>
+                        <PaginationNext href={`?mostPage=${mostPage + 1}&lessPage=${lessPage}`} />
+                      </PaginationItem>
+                    )}
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
         </TabsContent>
 
@@ -95,17 +144,43 @@ export default async function BudgetPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {lessImportantItems.map((item) => (
-                <BudgetCard
-                  key={item.id}
-                  title={item.title}
-                  cost={formatCurrency(item.cost)}
-                  progress={Math.min(100, Math.round((balance / item.cost) * 100))}
-                  attainable={balance >= item.cost}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedLessItems.map((item) => (
+                  <BudgetCard
+                    key={item.id}
+                    id={item.id}
+                    title={item.title}
+                    cost={formatCurrency(item.cost)}
+                    progress={Math.min(100, Math.round((balance / item.cost) * 100))}
+                    attainable={balance >= item.cost}
+                  />
+                ))}
+              </div>
+              {lessPageCount > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    {lessPage > 1 && (
+                      <PaginationItem>
+                        <PaginationPrevious href={`?mostPage=${mostPage}&lessPage=${lessPage - 1}`} />
+                      </PaginationItem>
+                    )}
+                    {Array.from({ length: lessPageCount }, (_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink href={`?mostPage=${mostPage}&lessPage=${i + 1}`} isActive={lessPage === i + 1}>
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    {lessPage < lessPageCount && (
+                      <PaginationItem>
+                        <PaginationNext href={`?mostPage=${mostPage}&lessPage=${lessPage + 1}`} />
+                      </PaginationItem>
+                    )}
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>
@@ -142,13 +217,14 @@ export default async function BudgetPage() {
               </div>
               <Progress
                 value={budgetUsedPercentage}
-                className={`h-2 ${
+                className="h-2"
+                indicatorClassName={
                   budgetUsedPercentage < 70
                     ? "bg-emerald-500"
                     : budgetUsedPercentage < 90
-                    ? "bg-amber-500"
-                    : "bg-rose-500"
-                }`}
+                      ? "bg-amber-500"
+                      : "bg-rose-500"
+                }
               />
               <p className="text-sm text-slate-500 mt-1">You've used {budgetUsedPercentage}% of your total budget</p>
             </div>
@@ -156,50 +232,5 @@ export default async function BudgetPage() {
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-interface BudgetCardProps {
-  title: string
-  cost: string
-  progress: number
-  attainable: boolean
-}
-
-function BudgetCard({ title, cost, progress, attainable }: BudgetCardProps) {
-  return (
-    <Card className="border-0 shadow-md bg-white hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription>{cost}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{progress}%</span>
-            </div>
-            <Progress
-              value={progress}
-              className={`h-2 ${attainable ? "bg-emerald-500" : "bg-amber-500"}`}
-            />
-          </div>
-          <div className={`flex items-center text-sm ${attainable ? "text-emerald-600" : "text-amber-500"}`}>
-            {attainable ? (
-              <>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Attainable with current funds
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Not attainable with current funds
-              </>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   )
 }
