@@ -40,7 +40,7 @@ export function UserGreeting({ fullName }: Props) {
   const greeting = `${getGreeting()}, ${firstName}`
 
   return (
-    <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-4 mb-2">
+    <div className="bg-gradient-to-r from-white to-blue-100 rounded-xl p-4 mb-2">
       <h2 className="text-2xl font-semibold text-purple-800">{greeting}</h2>
       <p className="text-slate-600 mt-1">{encouragement}</p>
     </div>

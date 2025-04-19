@@ -50,7 +50,7 @@ export default async function BudgetPage({ searchParams }: { searchParams?: { mo
       <Toaster position="top-center" />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl lg:ml-0 md:ml-0 sm:ml-0 ml-12 font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-500 bg-clip-text text-transparent">
             Budget
           </h1>
           <p className="text-slate-500 mt-1">Manage your budget items and track your spending.</p>

@@ -11,7 +11,8 @@ import { logout } from "@/actions/auth"
 // import type { AuthUser } from "@/lib/dal"
 import { usePathname } from "next/navigation"
 import { AuthUser } from "@/lib/dal"
-import { Header } from "@radix-ui/react-accordion"
+
+
 
 
 interface DashboardLayoutProps {
@@ -25,6 +26,7 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      
       {!isMobile ? (
         <Sidebar className="hidden md:flex" user={user} pathname={pathname} />
       ) : (
@@ -40,9 +42,16 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
           </SheetContent>
         </Sheet>
       )}
+      
 
-      <div className="flex-1">
-        <main className="p-4 md:p-8">{children}</main>
+      {/* <div className="flex-1"></div>
+      <div className="hidden md:block">
+        <main className="p-4 md:p-8 w-full h-screen bg-black">{children}</main>
+      </div> */}
+
+      <div className="flex-1"></div>
+      <div className=" w-80 h-screen flex items-center bg-black">
+        <main className=" w-full h-screen">{children}</main>
       </div>
     </div>
   )
@@ -56,7 +65,7 @@ interface SidebarProps {
 
 function Sidebar({ className, user, pathname = "" }: SidebarProps) {
   return (
-    <div className={cn("w-64 bg-white shadow-md flex flex-col h-full", className)}>
+    <div className={cn("w-64 bg-blue-900 shadow-md flex flex-col h-full fixed", className)}>
       <div className="p-6 border-b border-slate-100">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
           Expense Tracker

@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-        <h1 className="text-3xl font-bold lg:ml-0 md:ml-0 sm:ml-0 ml-12 tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-2 tracking-tight bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
             Dashboard
         </h1>
           {/* <p className="text-slate-500 mt-1">Welcome to your financial overview.</p> */}
